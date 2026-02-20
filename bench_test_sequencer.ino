@@ -6,7 +6,7 @@
  * Each press advances the channel sequence (850→940→1050→repeat);
  * the corresponding SLC trigger is HIGH only while the button is held.
  *
- * Pins: D2 (input), D8/D9/D10 (SLC Ch1-3 triggers), D13 (heartbeat)
+ * Pins: D2 (input), D8/D9/D10 (SLC Ch1-3 triggers)
  * See docs/wiring.md for circuit details.
  */
 
@@ -17,16 +17,12 @@
 // ── Hardware register aliases ───────────────────────────────────────────
 #define LED_TRIGGER_PORT    PORTB
 #define LED_TRIGGER_DDR     DDRB
-#define LED_TRIGGER_TOGGLE  PINB
 #define TRIGGER_INPUT_PINS  PIND
 #define TRIGGER_INPUT_DDR   DDRD
 
 // ── Build-time options ──────────────────────────────────────────────────
 #ifndef DEBOUNCE_US
 #define DEBOUNCE_US 5000UL
-#endif
-#ifndef DEBUG_HEARTBEAT
-#define DEBUG_HEARTBEAT 1
 #endif
 #ifndef SERIAL_BANNER
 #define SERIAL_BANNER 1
@@ -73,11 +69,6 @@ ISR(INT0_vect) {
         setActiveChannel(ch);
         g_nextChannelIndex = advanceChannel(ch);
         g_triggerCount++;
-
-#if DEBUG_HEARTBEAT
-        static uint8_t frameCount = 0;
-        if (++frameCount == 0) LED_TRIGGER_TOGGLE = _BV(PB5);
-#endif
     } else {
         allChannelsOff();
     }
@@ -88,19 +79,11 @@ ISR(INT0_vect) {
 void setup() {
     cli();
 
-    // Channel outputs: D8/D9/D10
     allChannelsOff();
     LED_TRIGGER_DDR |= kAllChannelBits;
 
-#if DEBUG_HEARTBEAT
-    LED_TRIGGER_PORT &= static_cast<uint8_t>(~_BV(PB5));
-    LED_TRIGGER_DDR  |= _BV(PB5);
-#endif
-
-    // Frame tick input: D2 (external 10kΩ pull-down, no internal pull-up)
     TRIGGER_INPUT_DDR &= static_cast<uint8_t>(~_BV(kTriggerInputBit));
 
-    // INT0: any logical change
     EIFR  = _BV(INTF0);
     EICRA = (EICRA & static_cast<uint8_t>(~(_BV(ISC01) | _BV(ISC00))))
             | _BV(ISC00);
@@ -119,7 +102,6 @@ void setup() {
     Serial.println(F("  D8  (OUT) : SLC Ch1 — 850 nm"));
     Serial.println(F("  D9  (OUT) : SLC Ch2 — 940 nm"));
     Serial.println(F("  D10 (OUT) : SLC Ch3 — 1050 nm"));
-    Serial.println(F("  D13 (OUT) : Heartbeat (every 256 presses)"));
     Serial.println(F("Debounce: 5 ms (software) + 1 ms (RC hardware)"));
     Serial.println(F("==================================="));
     Serial.println(F("Ready. Press button to cycle LEDs."));
