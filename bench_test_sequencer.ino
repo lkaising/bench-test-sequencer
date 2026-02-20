@@ -54,7 +54,6 @@ static inline uint8_t advanceChannel(uint8_t channel) {
 }
 
 // ── INT0 ISR — fires on any logic change on D2 ─────────────────────────
-
 ISR(INT0_vect) {
 #if DEBOUNCE_US > 0
     unsigned long now = micros();
@@ -62,12 +61,12 @@ ISR(INT0_vect) {
     g_lastAcceptedEdgeUs = now;
 #endif
 
-    uint8_t ch = g_nextChannelIndex;
+    uint8_t channel = g_nextChannelIndex;
     bool pressed = (TRIGGER_INPUT_PINS & _BV(kTriggerInputBit)) != 0;
 
     if (pressed) {
-        setActiveChannel(ch);
-        g_nextChannelIndex = advanceChannel(ch);
+        setActiveChannel(channel);
+        g_nextChannelIndex = advanceChannel(channel);
         g_triggerCount++;
     } else {
         allChannelsOff();
