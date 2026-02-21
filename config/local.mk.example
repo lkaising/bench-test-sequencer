@@ -1,0 +1,10 @@
+# config/local.mk — Per-machine overrides (gitignored)
+# Copy this file to local.mk and uncomment/edit as needed:
+#   cp config/local.mk.example config/local.mk
+#
+# These values override the Makefile defaults. Command-line arguments
+# (e.g. make upload PORT=/dev/ttyUSB0) still take highest priority.
+
+# PORT = /dev/ttyACM1
+# FQBN = arduino:avr:mega:cpu=atmega2560
+# CLI  = /usr/local/bin/arduino-cli

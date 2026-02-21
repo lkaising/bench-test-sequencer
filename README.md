@@ -38,7 +38,8 @@ bench_test_sequencer/
 ├── .gitignore                  # Excludes build/ and config/local.mk
 ├── config/
 │   ├── arduino-cli.yaml        # Pinned AVR core
-│   └── local.mk                # (gitignored) Per-machine overrides
+│   ├── local.mk                # (gitignored) Per-machine overrides
+│   └── local.mk.example        # Template for local.mk
 └── docs/
     └── wiring.md               # Full pin assignments and circuit diagram
 ```
@@ -64,7 +65,7 @@ Full wiring details: [docs/wiring.md](docs/wiring.md)
 ## Test Procedure
 
 ### Prerequisites
-- SLC-SA04-US powered and pre-programmed in TRIGGER follower mode (Tset = 9999, channels 1–3, via RS232)
+- SLC-SA04-US powered and pre-programmed in TRIGGER follower mode (Tset = 9999, channels 1-3, via RS232)
 - LEDs connected to SLC channel outputs via CON8ML-4 cables
 - Arduino wired per docs/wiring.md
 - IR safety precautions in place (NIR LEDs are invisible - use IR card or camera to verify emission)
