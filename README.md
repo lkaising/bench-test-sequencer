@@ -34,7 +34,10 @@ On boot, the serial monitor (115200 baud) prints a startup banner and then repor
 bench_test_sequencer/
 ├── README.md                   # This file
 ├── Makefile                    # Build automation (setup/build/upload/monitor/clean)
-├── bench_test_sequencer.ino    # Firmware source
+├── bench_test_sequencer.ino    # Arduino entrypoint
+├── src/
+│   ├── sequencer.h             # Public sequencer interface
+│   └── sequencer.cpp           # Firmware implementation (ISR, pin logic, serial reports)
 ├── .gitignore                  # Excludes build/ and config/local.mk
 ├── config/
 │   ├── arduino-cli.yaml        # Pinned AVR core
@@ -104,7 +107,7 @@ Probe D2, D8, D9, D10 and verify:
 
 ## Build-Time Options
 
-Override via `make build BUILD_EXTRA_FLAGS="-DDEBOUNCE_US=10000"` or by editing the `#define` values in the sketch:
+Override via `make build BUILD_EXTRA_FLAGS="..."` or by editing the `#define` values in `src/sequencer.cpp`:
 
 | Define           | Default | Description                             |
 |------------------|---------|-----------------------------------------|
