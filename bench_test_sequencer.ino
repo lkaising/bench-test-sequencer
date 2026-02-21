@@ -89,8 +89,8 @@ ISR(INT0_vect) {
 void setup() {
     cli();
     allChannelsOff();
-    configurePins()
-    configureButtonInterrupt()
+    configurePins();
+    configureButtonInterrupt();
     sei();
 
 #if SERIAL_BANNER
