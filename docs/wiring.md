@@ -2,9 +2,7 @@
 
 ## Overview
 
-This document describes the bench test wiring for validating the
-Arduino → Mightex SLC-SA04-US → NIR LED signal chain using a momentary
-pushbutton in place of the camera's ExposureActive signal.
+This document describes the bench test wiring for validating the Arduino -> Mightex SLC-SA04-US -> NIR LED signal chain using a momentary pushbutton in place of the camera's ExposureActive signal.
 
 ## Pin Assignments
 
@@ -14,8 +12,8 @@ pushbutton in place of the camera's ExposureActive signal.
 | D8          | OUTPUT    | Channel 1 trigger       | SLC-SA04-US Ch1 TRIG IN   |
 | D9          | OUTPUT    | Channel 2 trigger       | SLC-SA04-US Ch2 TRIG IN   |
 | D10         | OUTPUT    | Channel 3 trigger       | SLC-SA04-US Ch3 TRIG IN   |
-| GND         | —         | Logic ground            | SLC TRIG GND              |
-| +5V         | —         | Debounce circuit power  | Pull-down / button rail   |
+| GND         | -         | Logic ground            | SLC TRIG GND              |
+| +5V         | -         | Debounce circuit power  | Pull-down / button rail   |
 
 ## Button + RC Debounce Circuit
 
@@ -52,7 +50,7 @@ pushbutton in place of the camera's ExposureActive signal.
 - RC time constant: τ = 10 kΩ × 100 nF = **1 ms** (hardware debounce)
 - Software debounce: **5 ms** additional guard in ISR
 
-## Arduino → SLC Trigger Wiring
+## Arduino -> SLC Trigger Wiring
 
 ```
 Arduino D8  ────────── SLC Ch1 TRIG IN   (850 nm / M850L3)
@@ -62,8 +60,8 @@ Arduino GND ────────── SLC TRIG GND      (shared logic groun
 ```
 
 **Electrical notes:**
-- Arduino 5V GPIO meets SLC trigger threshold (4.5–10V HIGH)
-- Direct wiring — no level shifter or buffer needed
+- Arduino 5V GPIO meets SLC trigger threshold (4.5-10V HIGH)
+- Direct wiring - no level shifter or buffer needed
 - SLC trigger inputs are opto-isolated and high-impedance
 
 ## SLC → LED Wiring
@@ -86,8 +84,7 @@ Pre-existing - uses CON8ML-4 connectors with ferrule-terminated wires to SLC cha
 | Signal frequency     | ~1 Hz (manual)              | ~88 Hz (camera frame rate)    |
 | Debounce             | RC + software               | Not needed (clean digital)    |
 
-**Note:** D8/D9/D10/GND wiring to SLC is identical in both configurations.
-When transitioning to the camera, only the D2 input circuit changes.
+**Note:** D8/D9/D10/GND wiring to SLC is identical in both configurations. When transitioning to the camera, only the D2 input circuit changes.
 
 ## BOM (Debounce Circuit Only)
 
