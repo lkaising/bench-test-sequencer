@@ -36,9 +36,9 @@ static constexpr uint8_t kAllChannelBits  = _BV(PB0) | _BV(PB1) | _BV(PB2);
 static const char* const kChannelNames[kNumChannels] = { "850_nm", "940_nm", "1050_nm" };
 
 // ── Runtime state (shared with ISR) ─────────────────────────────────────
-volatile uint8_t       g_nextChannelIndex   = 0;
-volatile unsigned long g_lastAcceptedEdgeUs = 0;
-volatile uint8_t       g_triggerCount       = 0;
+volatile uint8_t       g_nextChannelIndex          = 0;
+volatile unsigned long g_lastAcceptedTriggerEdgeUs = 0;
+volatile uint8_t       g_triggerCount              = 0;
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 static inline void allChannelsOff() {
@@ -52,19 +52,31 @@ static inline uint8_t advanceChannel(uint8_t channel) {
     channel++;
     return (channel >= kNumChannels) ? 0 : channel;
 }
+static inline uint8_t previousChannel(uint8_t channel) {
+    return (channel == 0) ? kNumChannels - 1 : channel - 1;
+}
+static inline void configurePins() {
+    LED_TRIGGER_DDR |= kAllChannelBits;
+    TRIGGER_INPUT_DDR &= static_cast<uint8_t>(~_BV(kTriggerInputBit));
+}
+static inline void configureButtonInterrupt() {
+    EIFR  = _BV(INTF0);
+    EICRA = _BV(ISC00);
+    EIMSK |= _BV(INT0);
+}
 
 // ── INT0 ISR — fires on any logic change on D2 ─────────────────────────
 ISR(INT0_vect) {
 #if DEBOUNCE_US > 0
-    unsigned long now = micros();
-    if (now - g_lastAcceptedEdgeUs < DEBOUNCE_US) return;
-    g_lastAcceptedEdgeUs = now;
+    unsigned long nowUs = micros();
+    if (nowUs - g_lastAcceptedTriggerEdgeUs < DEBOUNCE_US) return;
+    g_lastAcceptedTriggerEdgeUs = nowUs;
 #endif
 
     uint8_t channel = g_nextChannelIndex;
-    bool pressed = (TRIGGER_INPUT_PINS & _BV(kTriggerInputBit)) != 0;
+    bool triggerIsHigh = (TRIGGER_INPUT_PINS & _BV(kTriggerInputBit)) != 0;
 
-    if (pressed) {
+    if (triggerIsHigh) {
         setActiveChannel(channel);
         g_nextChannelIndex = advanceChannel(channel);
         g_triggerCount++;
@@ -74,67 +86,39 @@ ISR(INT0_vect) {
 }
 
 // ── setup ───────────────────────────────────────────────────────────────
-
 void setup() {
     cli();
-
     allChannelsOff();
-    LED_TRIGGER_DDR |= kAllChannelBits;
-
-    TRIGGER_INPUT_DDR &= static_cast<uint8_t>(~_BV(kTriggerInputBit));
-
-    EIFR  = _BV(INTF0);
-    EICRA = (EICRA & static_cast<uint8_t>(~(_BV(ISC01) | _BV(ISC00))))
-            | _BV(ISC00);
-    EIMSK |= _BV(INT0);
-
+    configurePins()
+    configureButtonInterrupt()
     sei();
 
 #if SERIAL_BANNER
     Serial.begin(115200);
-    Serial.println(F("\n==================================="));
-    Serial.println(F("NIR Vein-Mapping System"));
-    Serial.println(F("Bench Test LED Sequencer v1-bench"));
-    Serial.println(F("==================================="));
-    Serial.println(F("Pin assignments:"));
-    Serial.println(F("  D2  (IN)  : Pushbutton (frame tick)"));
-    Serial.println(F("  D8  (OUT) : SLC Ch1 — 850 nm"));
-    Serial.println(F("  D9  (OUT) : SLC Ch2 — 940 nm"));
-    Serial.println(F("  D10 (OUT) : SLC Ch3 — 1050 nm"));
-    Serial.println(F("Debounce: 5 ms (software) + 1 ms (RC hardware)"));
-    Serial.println(F("==================================="));
-    Serial.println(F("Ready. Press button to cycle LEDs."));
-    Serial.println(F("Channel sequence: 850 → 940 → 1050 → repeat\n"));
+    Serial.println(F("\nBench Test LED Sequencer v1-bench"));
+    Serial.println(F("850 -> 940 -> 1050 -> repeat"));
+    Serial.println(F("Ready.\n"));
 #endif
 }
 
 // ── loop — serial press reporting ───────────────────────────────────────
-
 void loop() {
 #if SERIAL_BANNER
-    static uint8_t lastReported = 0;
+    static uint8_t lastReportedTriggerCount = 0;
 
     cli();
-    uint8_t current = g_triggerCount;
+    uint8_t triggerCountSnapshot = g_triggerCount;
+    uint8_t nextChannelIndexSnapshot = g_nextChannelIndex;
     sei();
 
-    if (current != lastReported) {
-        lastReported = current;
-
-        cli();
-        uint8_t next = g_nextChannelIndex;
-        sei();
-
-        uint8_t justFired = (next == 0) ? kNumChannels - 1 : next - 1;
+    if (triggerCountSnapshot != lastReportedTriggerCount) {
+        lastReportedTriggerCount = triggerCountSnapshot;
+        uint8_t lastFiredChannelIndex = previousChannel(nextChannelIndexSnapshot);
 
         Serial.print(F("Press #"));
-        Serial.print(current);
-        Serial.print(F(" → Channel "));
-        Serial.print(justFired);
-        Serial.print(F(" ("));
-        Serial.print(kChannelNames[justFired]);
-        Serial.print(F(") — D"));
-        Serial.println(8 + justFired);
+        Serial.print(triggerCountSnapshot);
+        Serial.print(F(" -> "));
+        Serial.println(kChannelNames[lastFiredChannelIndex]);
     }
 #endif
 }
