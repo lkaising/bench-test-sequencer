@@ -1,2 +1,4 @@
+# AVR core version is pinned in the Makefile (AVR_CORE_VERSION)
+# and installed via `make setup`.
 board_manager:
   additional_urls: []

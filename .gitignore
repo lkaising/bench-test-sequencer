@@ -19,6 +19,10 @@ Thumbs.db
 *~
 *.swp
 *.swo
+*.bak
+
+# IDE
+.vscode/
 
 # Local machine config
 config/local.mk

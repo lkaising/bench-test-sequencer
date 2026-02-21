@@ -14,7 +14,6 @@ pushbutton in place of the camera's ExposureActive signal.
 | D8          | OUTPUT    | Channel 1 trigger       | SLC-SA04-US Ch1 TRIG IN   |
 | D9          | OUTPUT    | Channel 2 trigger       | SLC-SA04-US Ch2 TRIG IN   |
 | D10         | OUTPUT    | Channel 3 trigger       | SLC-SA04-US Ch3 TRIG IN   |
-| D13         | OUTPUT    | Heartbeat (debug)       | Onboard LED               |
 | GND         | —         | Logic ground            | SLC TRIG GND              |
 | +5V         | —         | Debounce circuit power  | Pull-down / button rail   |
 
@@ -28,17 +27,22 @@ pushbutton in place of the camera's ExposureActive signal.
               │   (NO)  │
               └────┬────┘
                    │
-    ┌──────────────┼──────────────┐
-    │              │              │
-   ┌┴┐            ┌┴┐             │
-   │ │ 10 kΩ      │ │ 100 nF      │
-   │ │ (pull-     │ │ (debounce   │
-   │ │  down)     │ │  cap)       │
-   └┬┘            └┬┘             │
-    │              │              │
-    └──────┬───────┘          Arduino D2
-           │                  (INT0)
-          GND
+                   ├──────────── Arduino D2 (INT0)
+                   │
+               ┌───┴───┐
+               │       │
+              ┌┴┐     ┌┴┐
+              │ │     │ │
+              │ │     │ │
+              └┬┘     └┬┘
+               │       │
+            10 kΩ   100 nF
+          (pull-   (debounce
+           down)      cap)
+               │       │
+               └───┬───┘
+                   │
+                  GND
 ```
 
 **Behavior:**
@@ -64,8 +68,7 @@ Arduino GND ────────── SLC TRIG GND      (shared logic groun
 
 ## SLC → LED Wiring
 
-Pre-existing — uses CON8ML-4 connectors with ferrule-terminated wires
-to SLC channel outputs. See LED Driver Knowledge Base for details.
+Pre-existing - uses CON8ML-4 connectors with ferrule-terminated wires to SLC channel outputs.
 
 **SLC configuration (pre-programmed via RS232):**
 - All channels: TRIGGER follower mode (Tset = 9999)
@@ -94,4 +97,4 @@ When transitioning to the camera, only the D2 input circuit changes.
 | 10 kΩ resistor (¼W)           | 1   | Pull-down for D2                |
 | 100 nF ceramic capacitor      | 1   | Debounce filter                 |
 | Breadboard                    | 1   | For prototyping connections     |
-| Jumper wires (M-M)            | ~6  | Button circuit + D2 connection  |
+| Jumper wires (M-M)            | 11  | Button circuit + D2 connection  |

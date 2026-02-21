@@ -17,9 +17,13 @@ AVR_CORE_VERSION ?= 1.8.6
 SKETCH          ?= bench_test_sequencer.ino
 CONFIG          ?= config/arduino-cli.yaml
 BUILD_DIR       ?= build
+BUILD_EXTRA_FLAGS ?=
 
 # --- Tool ---
 CLI             ?= arduino-cli
+
+# --- Default target ---
+.DEFAULT_GOAL := build
 
 # ============================================================================
 # Targets
@@ -39,13 +43,13 @@ list:
 ## build : Compile sketch to build/
 build:
 	$(CLI) compile --fqbn $(FQBN) --build-path $(BUILD_DIR) \
-		--config-file $(CONFIG) .
+		--config-file $(CONFIG) \
+		$(if $(BUILD_EXTRA_FLAGS),--build-property "build.extra_flags=$(BUILD_EXTRA_FLAGS)") \
+		.
 	@echo "✓ Build complete → $(BUILD_DIR)/"
 
-## upload : Compile + flash to board
-upload:
-	$(CLI) compile --fqbn $(FQBN) --build-path $(BUILD_DIR) \
-		--config-file $(CONFIG) .
+## upload : Compile + flash to board (depends on build)
+upload: build
 	$(CLI) upload --fqbn $(FQBN) --port $(PORT) \
 		--input-dir $(BUILD_DIR)
 	@echo "✓ Uploaded to $(PORT)"
@@ -74,3 +78,4 @@ help:
 	@echo "Override examples:"
 	@echo "  make upload PORT=/dev/ttyACM1"
 	@echo "  make build FQBN=arduino:avr:mega:cpu=atmega2560"
+	@echo "  make build BUILD_EXTRA_FLAGS=\"-DDEBOUNCE_US=10000\""
